@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte de Basura</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f2f2f2;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+    }
+    input, textarea, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+    }
+    button {
+      background: green;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    #status {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Reporte de Tiradero de Basura</h1>
+
+<form id="reporteForm">
+  <textarea id="descripcion" placeholder="Describe el problema..." required></textarea>
+
+  <input type="file" id="foto" accept="image/*" capture="environment">
+
+  <button type="button" onclick="obtenerUbicacion()">Obtener ubicación</button>
+  <div id="ubicacion"></div>
+
+  <button type="submit">Enviar Reporte</button>
+</form>
+
+<div id="status"></div>
+
+<script>
+let lat = null;
+let lon = null;
+
+function obtenerUbicacion() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      lat = pos.coords.latitude;
+      lon = pos.coords.longitude;
+      document.getElementById("ubicacion").innerText =
+        `Ubicación: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+    }, () => {
+      alert("No se pudo obtener ubicación");
+    });
+  } else {
+    alert("Geolocalización no soportada");
+  }
+}
+
+document.getElementById("reporteForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const descripcion = document.getElementById("descripcion").value;
+  const foto = document.getElementById("foto").files[0];
+
+  if (!lat || !lon) {
+    alert("Primero obtén la ubicación");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function() {
+    const reporte = {
+      descripcion,
+      lat,
+      lon,
+      imagen: reader.result,
+      fecha: new Date().toISOString()
+    };
+
+    console.log("Reporte enviado:", reporte);
+
+    document.getElementById("status").innerText =
+      "✅ Reporte enviado correctamente";
+
+    document.getElementById("reporteForm").reset();
+    document.getElementById("ubicacion").innerText = "";
+  };
+
+  if (foto) {
+    reader.readAsDataURL(foto);
+  } else {
+    reader.onload();
+  }
+});
+</script>
+
+</body>
+</html>
